@@ -138,6 +138,50 @@ static void SimpleDoubleTest(httplib::Client* cli) {
 
       REQUIRE_CLOSE(value, 2.0, precision);
     }
+
+    // Проверка левого граничного условия
+    for (int k = M; k < 2 * M; k++) {
+      double value = data[k * (2 * M + 1)];
+
+      REQUIRE_CLOSE(value, 4.0 - double(k) / M, precision);
+    }
+
+    // Проверка нижнего граничного условия
+    for (int k = M; k <= 2 * M; k++) {
+      double value = data[k];
+
+      REQUIRE_CLOSE(value, 4.0 * double(k) / M, precision);
+    }
+
+    // Проверка внутреннего вертикального граничного условия
+    for (int k = 1; k <= M; k++) {
+      double value = data[k * (2 * M + 1) + M];
+
+      REQUIRE_CLOSE(value, 2.0 * double(k) / M, precision);
+    }
+
+    // Проверка правого условия Неймана
+    for (int k = 1; k < 2 * M; k++) {
+      double value = data[k * (2 * M + 1) + 2 * M];
+      double innerValue = data[k * (2 * M + 1) + 2 * M - 1];
+
+      REQUIRE_CLOSE(value, innerValue, precision);
+    }
+
+    // Проверка внутреннего горизонтального условия Неймана
+    for (int k = 1; k < M; k++) {
+      double value = data[M * (2 * M + 1) + k];
+      double innerValue = data[(M + 1) * (2 * M + 1) + k];
+
+      REQUIRE_CLOSE(value, innerValue, precision);
+    }
+
+    // Проверка вырезанной части области
+    for (int i = 0; i < M; i++) {
+      for (int j = 0; j < M; j++) {
+        REQUIRE(data[i * (2 * M + 1) + j].is_null());
+      }
+    }
   }
 }
 
