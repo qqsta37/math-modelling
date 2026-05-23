@@ -131,6 +131,7 @@ static void SimpleDoubleTest(httplib::Client* cli) {
     }
 
     const double precision = 1e-8;
+    double h = 1.0 / M;
 
     // Проверка верхнего граничного условия
     for (int k = 0; k <= 2 * M; k++) {
@@ -143,21 +144,21 @@ static void SimpleDoubleTest(httplib::Client* cli) {
     for (int k = M; k < 2 * M; k++) {
       double value = data[k * (2 * M + 1)];
 
-      REQUIRE_CLOSE(value, 4.0 - static_cast<double>(k) / M, precision);
+      REQUIRE_CLOSE(value, 4.0 - k * h, precision);
     }
 
     // Проверка нижнего граничного условия
     for (int k = M; k <= 2 * M; k++) {
       double value = data[k];
 
-      REQUIRE_CLOSE(value, 4.0 * static_cast<double>(k) / M, precision);
+      REQUIRE_CLOSE(value, 4.0 * k * h, precision);
     }
 
     // Проверка внутреннего вертикального граничного условия
     for (int k = 1; k <= M; k++) {
       double value = data[k * (2 * M + 1) + M];
 
-      REQUIRE_CLOSE(value, 2.0 * static_cast<double>(k) / M, precision);
+      REQUIRE_CLOSE(value, 2.0 * k * h, precision);
     }
 
     // Проверка правого условия Неймана
@@ -351,4 +352,60 @@ static void RandomDoubleTest(httplib::Client* cli) {
   nlohmann::json output = nlohmann::json::parse(res->body);
 
   REQUIRE(output.find("id") != output.end());
+
+  int taskId = output["id"];
+
+  const int numTries = 100;
+  bool success = false;
+
+  for (int k = 0; k < numTries; k++) {
+    char buffer[1024];
+    const char* format = R"(
+{
+  "id": %d
+}
+)";
+    snprintf(buffer, sizeof(buffer), format, taskId);
+
+    auto res = cli->Post("/CheckTaskStatus", buffer,
+          "application/json");
+
+    if (!res) {
+      REQUIRE(false);
+    }
+
+    nlohmann::json output = nlohmann::json::parse(res->body);
+
+    std::string status = output.at("status");
+
+    if (status == "finished") {
+      success = true;
+      break;
+    }
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  }
+
+  REQUIRE(success);
+
+  {
+    char buffer[1024];
+    const char* format = R"(
+  {
+  "id": %d
+  }
+  )";
+    snprintf(buffer, sizeof(buffer), format, taskId);
+
+    auto res = cli->Post("/DownloadTaskData", buffer,
+          "application/json");
+
+    if (!res) {
+      REQUIRE(false);
+    }
+
+    nlohmann::json output = nlohmann::json::parse(res->body);
+
+    REQUIRE(output.at("status") == "ok");
+  }
 }
