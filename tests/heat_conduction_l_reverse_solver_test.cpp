@@ -143,21 +143,21 @@ static void SimpleDoubleTest(httplib::Client* cli) {
     for (int k = M; k < 2 * M; k++) {
       double value = data[k * (2 * M + 1)];
 
-      REQUIRE_CLOSE(value, 4.0 - double(k) / M, precision);
+      REQUIRE_CLOSE(value, 4.0 - static_cast<double>(k) / M, precision);
     }
 
     // Проверка нижнего граничного условия
     for (int k = M; k <= 2 * M; k++) {
       double value = data[k];
 
-      REQUIRE_CLOSE(value, 4.0 * double(k) / M, precision);
+      REQUIRE_CLOSE(value, 4.0 * static_cast<double>(k) / M, precision);
     }
 
     // Проверка внутреннего вертикального граничного условия
     for (int k = 1; k <= M; k++) {
       double value = data[k * (2 * M + 1) + M];
 
-      REQUIRE_CLOSE(value, 2.0 * double(k) / M, precision);
+      REQUIRE_CLOSE(value, 2.0 * static_cast<double>(k) / M, precision);
     }
 
     // Проверка правого условия Неймана
