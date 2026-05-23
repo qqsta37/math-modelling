@@ -66,8 +66,9 @@ int HeatConductionLReverseSolverMethodHelper(
   int M = input.at("M");
   int numThreads = input.at("num_threads");
 
+  T maxTau = T(1) / (4 * M * M);
   if (M <= 0 || tau < 0 || finishTime < 0 || exportPeriod <= 0 ||
-      numThreads < 1 || tau > T(1) / (4 * M * M))
+      numThreads < 1 || tau > maxTau + maxTau * T(1e-6))
     return -1;
 
   solver = new HeatConductionLReverseSolver<T>(tau, finishTime,

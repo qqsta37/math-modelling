@@ -112,7 +112,7 @@ static void SimpleDoubleTest(httplib::Client* cli) {
 
     REQUIRE(output.at("status") == "ok");
 
-    int numFrames = output.at("data").size();
+    size_t numFrames = output.at("data").size();
 
     REQUIRE(numFrames > 0);
 
